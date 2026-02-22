@@ -2,8 +2,34 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { protect } = require('../utils/auth');
+const multer = require('multer');
+const path = require('path');
 
 const prisma = new PrismaClient();
+
+// Multer storage for media
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `post-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|webp|mp4|mov|webm/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error('Only images and videos are allowed'));
+    }
+});
 
 // Get all posts
 router.get('/', async (req, res) => {
@@ -15,24 +41,39 @@ router.get('/', async (req, res) => {
                 comments: {
                     include: { user: { select: { id: true, name: true, avatar: true } } },
                 },
+                sharedPost: {
+                    include: {
+                        author: { select: { id: true, name: true, avatar: true } }
+                    }
+                }
             },
             orderBy: { createdAt: 'desc' },
         });
         res.json(posts);
     } catch (error) {
+        console.error('Fetch posts error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
 
-// Create post
-router.post('/', protect, async (req, res) => {
+// Create post with optional media
+router.post('/', protect, upload.single('media'), async (req, res) => {
     const { content } = req.body;
+    let mediaUrl = null;
+    let mediaType = null;
+
+    if (req.file) {
+        mediaUrl = `/uploads/${req.file.filename}`;
+        mediaType = req.file.mimetype.startsWith('video') ? 'VIDEO' : 'IMAGE';
+    }
 
     try {
         const post = await prisma.post.create({
             data: {
                 content,
                 authorId: req.userId,
+                mediaUrl,
+                mediaType
             },
             include: {
                 author: { select: { id: true, name: true, avatar: true } },
@@ -40,6 +81,33 @@ router.post('/', protect, async (req, res) => {
         });
         res.status(201).json(post);
     } catch (error) {
+        console.error('Create post error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Share post
+router.post('/:id/share', protect, async (req, res) => {
+    const originalPostId = req.params.id;
+    try {
+        const post = await prisma.post.create({
+            data: {
+                content: "shared a post",
+                authorId: req.userId,
+                sharedPostId: originalPostId
+            },
+            include: {
+                author: { select: { id: true, name: true, avatar: true } },
+                sharedPost: {
+                    include: {
+                        author: { select: { id: true, name: true, avatar: true } }
+                    }
+                }
+            }
+        });
+        res.status(201).json(post);
+    } catch (error) {
+        console.error('Share post error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });

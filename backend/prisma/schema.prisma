@@ -24,7 +24,7 @@ model User {
   following     Follow[]       @relation("UserFollowing")
   notifications Notification[] @relation("UserNotifications")
   sentMessages     Message[]   @relation("SentMessages")
-  conversations    Conversation[] @relation(fields: [conversationIds], references: [id])
+  conversations    Conversation[] @relation("UserConversations", fields: [conversationIds], references: [id])
   conversationIds  String[]    @db.ObjectId
   createdAt     DateTime       @default(now())
 }
@@ -36,6 +36,11 @@ model Post {
   authorId  String    @db.ObjectId
   likes     Like[]
   comments  Comment[]
+  mediaUrl   String?
+  mediaType  String? // "IMAGE", "VIDEO"
+  sharedPost Post? @relation("SharedPosts", fields: [sharedPostId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  sharedPostId String? @db.ObjectId
+  sharingPosts Post[] @relation("SharedPosts")
   createdAt DateTime  @default(now())
 }
 
@@ -82,7 +87,7 @@ model Notification {
 
 model Conversation {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  participants User[]    @relation(fields: [participantIds], references: [id])
+  participants User[]    @relation("UserConversations", fields: [participantIds], references: [id])
   participantIds String[] @db.ObjectId
   messages    Message[]
   updatedAt   DateTime  @updatedAt

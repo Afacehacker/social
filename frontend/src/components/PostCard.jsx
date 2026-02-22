@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Trash2, Repeat } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -51,6 +51,16 @@ const PostCard = ({ post, onUpdate }) => {
 
     const isLiked = post.likes.some(like => like.userId === user?.id);
 
+    const handleShare = async () => {
+        try {
+            await api.post(`/posts/${post.id}/share`);
+            addToast('Shared successfully!');
+            onUpdate();
+        } catch (err) {
+            addToast('Share failed', 'error');
+        }
+    };
+
     const getAvatarUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
@@ -90,6 +100,39 @@ const PostCard = ({ post, onUpdate }) => {
 
             <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>{post.content}</p>
 
+            {post.mediaUrl && (
+                <div style={{ marginBottom: '1.5rem', borderRadius: '0.75rem', overflow: 'hidden', background: 'rgba(0,0,0,0.2)' }}>
+                    {post.mediaType === 'VIDEO' ? (
+                        <video src={getAvatarUrl(post.mediaUrl)} controls style={{ width: '100%', display: 'block' }} />
+                    ) : (
+                        <img src={getAvatarUrl(post.mediaUrl)} alt="" style={{ width: '100%', display: 'block' }} />
+                    )}
+                </div>
+            )}
+
+            {post.sharedPost && (
+                <div className="glass-card" style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', overflow: 'hidden' }}>
+                            {post.sharedPost.author.avatar ? (
+                                <img src={getAvatarUrl(post.sharedPost.author.avatar)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : post.sharedPost.author.name[0]}
+                        </div>
+                        <span style={{ fontWeight: 'bold', fontSize: '0.875rem' }}>{post.sharedPost.author.name}</span>
+                    </div>
+                    <p style={{ fontSize: '0.95rem', margin: 0 }}>{post.sharedPost.content}</p>
+                    {post.sharedPost.mediaUrl && (
+                        <div style={{ marginTop: '0.75rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                            {post.sharedPost.mediaType === 'VIDEO' ? (
+                                <video src={getAvatarUrl(post.sharedPost.mediaUrl)} controls style={{ width: '100%', display: 'block' }} />
+                            ) : (
+                                <img src={getAvatarUrl(post.sharedPost.mediaUrl)} alt="" style={{ width: '100%', display: 'block' }} />
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
                 <button
                     onClick={handleLike}
@@ -110,6 +153,13 @@ const PostCard = ({ post, onUpdate }) => {
                 >
                     <MessageCircle size={20} />
                     <span>{post.comments.length}</span>
+                </button>
+                <button
+                    onClick={handleShare}
+                    style={{ background: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    <Repeat size={20} />
+                    <span>{post.sharingPosts?.length || 0}</span>
                 </button>
             </div>
 

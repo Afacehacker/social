@@ -15,7 +15,7 @@ router.post('/conversations', protect, async (req, res) => {
     }
 
     try {
-        // Find existing conversation
+        // Find existing conversation with these exact participants
         let conversation = await prisma.conversation.findFirst({
             where: {
                 participantIds: {
@@ -29,6 +29,12 @@ router.post('/conversations', protect, async (req, res) => {
             }
         });
 
+        // Ensure it only has these 2 participants (not a larger group chat if we add those later)
+        // For now, simple check is enough since we only have 1:1
+        if (conversation && conversation.participantIds.length !== 2) {
+            conversation = null;
+        }
+
         if (!conversation) {
             conversation = await prisma.conversation.create({
                 data: {
@@ -40,6 +46,10 @@ router.post('/conversations', protect, async (req, res) => {
                 include: {
                     participants: {
                         select: { id: true, name: true, avatar: true }
+                    },
+                    messages: {
+                        take: 1,
+                        orderBy: { createdAt: 'desc' }
                     }
                 }
             });
