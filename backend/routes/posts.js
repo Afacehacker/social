@@ -204,6 +204,15 @@ router.delete('/:id', protect, async (req, res) => {
             return res.status(401).json({ message: 'Not authorized' });
         }
 
+        // Manually delete related data (since MongoDB doesn't support cascade as needed)
+        await prisma.like.deleteMany({ where: { postId } });
+        await prisma.comment.deleteMany({ where: { postId } });
+        await prisma.notification.deleteMany({ where: { postId } });
+
+        // Handle shared posts (nullify the reference or delete them? Usually nullify or delete)
+        // For shared posts, we'll just delete them too to avoid broken links
+        await prisma.post.deleteMany({ where: { sharedPostId: postId } });
+
         await prisma.post.delete({ where: { id: postId } });
         res.json({ message: 'Post removed' });
     } catch (error) {
