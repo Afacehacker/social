@@ -7,6 +7,8 @@ import Landing from './pages/Landing';
 import Feed from './pages/Feed';
 import AuthPage from './pages/AuthPage';
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
+import Messages from './pages/Messages';
 import { useAuth } from './context/AuthContext';
 import './index.css';
 
@@ -23,6 +25,8 @@ function AppContent() {
             <Route path="/feed" element={<Feed />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/:id" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/messages" element={<Messages />} />
             <Route path="/login" element={<AuthPage type="login" />} />
             <Route path="/signup" element={<AuthPage type="signup" />} />
           </Routes>

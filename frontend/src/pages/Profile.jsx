@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { MessageSquare, Users, UserPlus, UserMinus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api from '../services/api';
@@ -7,12 +8,18 @@ import PostCard from '../components/PostCard';
 
 const Profile = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const { user: currentUser } = useAuth();
     const { addToast } = useToast();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [showFollowers, setShowFollowers] = useState(false);
+    const [showFollowing, setShowFollowing] = useState(false);
+    const [followers, setFollowers] = useState([]);
+    const [followingList, setFollowingList] = useState([]);
     const [formData, setFormData] = useState({ name: '', bio: '', avatar: '' });
     const [avatarFile, setAvatarFile] = useState(null);
     const [avatarPreview, setAvatarPreview] = useState('');
@@ -24,6 +31,13 @@ const Profile = () => {
             try {
                 const res = await api.get(`/users/${userId}`);
                 setUser(res.data);
+
+                // Check if current user follows this user
+                if (currentUser && currentUser.id !== userId) {
+                    const followsRes = await api.get(`/follows/following/${currentUser.id}`);
+                    setIsFollowing(followsRes.data.some(f => f.id === userId));
+                }
+
                 setFormData({ name: res.data.name, bio: res.data.bio || '', avatar: res.data.avatar || '' });
                 if (res.data.avatar) {
                     const avatarUrl = res.data.avatar.startsWith('http')
@@ -39,7 +53,49 @@ const Profile = () => {
         };
 
         if (userId) fetchUser();
-    }, [userId]);
+    }, [userId, currentUser]);
+
+    const handleFollow = async () => {
+        try {
+            const res = await api.post(`/follows/${userId}`);
+            setIsFollowing(res.data.followed);
+            // Refresh user counts
+            const userRes = await api.get(`/users/${userId}`);
+            setUser(userRes.data);
+            addToast(res.data.message);
+        } catch (err) {
+            addToast('Failed to follow', 'error');
+        }
+    };
+
+    const handleMessage = async () => {
+        try {
+            const res = await api.post('/chat/conversations', { participantId: userId });
+            navigate('/messages');
+        } catch (err) {
+            addToast('Failed to start chat', 'error');
+        }
+    };
+
+    const fetchFollowersList = async () => {
+        try {
+            const res = await api.get(`/follows/followers/${userId}`);
+            setFollowers(res.data);
+            setShowFollowers(true);
+        } catch (err) {
+            addToast('Failed to fetch followers', 'error');
+        }
+    };
+
+    const fetchFollowingList = async () => {
+        try {
+            const res = await api.get(`/follows/following/${userId}`);
+            setFollowingList(res.data);
+            setShowFollowing(true);
+        } catch (err) {
+            addToast('Failed to fetch following', 'error');
+        }
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -117,11 +173,35 @@ const Profile = () => {
                         <h1 style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{user.name}</h1>
                         <p style={{ color: 'var(--text-muted)' }}>{user.email}</p>
                     </div>
-                    {isOwnProfile && (
+                    {isOwnProfile ? (
                         <button className="btn-primary" onClick={() => setIsEditing(!isEditing)}>
                             {isEditing ? 'Cancel' : 'Edit Profile'}
                         </button>
+                    ) : (
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <button className={isFollowing ? "btn-secondary" : "btn-primary"} onClick={handleFollow}>
+                                {isFollowing ? <><UserMinus size={18} /> Unfollow</> : <><UserPlus size={18} /> Follow</>}
+                            </button>
+                            <button className="btn-secondary" onClick={handleMessage}>
+                                <MessageSquare size={18} /> Message
+                            </button>
+                        </div>
                     )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1.5rem' }}>
+                    <div style={{ textAlign: 'center', cursor: 'pointer' }} onClick={fetchFollowersList}>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{user._count?.followers || 0}</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Followers</div>
+                    </div>
+                    <div style={{ textAlign: 'center', cursor: 'pointer' }} onClick={fetchFollowingList}>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{user._count?.following || 0}</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Following</div>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{user._count?.posts || 0}</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Posts</div>
+                    </div>
                 </div>
 
                 {isEditing ? (
@@ -152,6 +232,51 @@ const Profile = () => {
                     <p style={{ fontStyle: user.bio ? 'normal' : 'italic' }}>{user.bio || 'No bio yet.'}</p>
                 )}
             </div>
+
+            {/* Followers/Following Modal (Simple version using conditional rendering) */}
+            {(showFollowers || showFollowing) && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '1rem'
+                }} onClick={() => { setShowFollowers(false); setShowFollowing(false); }}>
+                    <div className="glass-card" style={{ width: '100%', maxWidth: '400px', maxHeight: '500px', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ marginBottom: '1.5rem' }}>{showFollowers ? 'Followers' : 'Following'}</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {(showFollowers ? followers : followingList).map(u => (
+                                <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', overflow: 'hidden' }}>
+                                        {u.avatar ? <img src={getAvatarUrl(u.avatar)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.name[0]}
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontWeight: 'bold' }}>{u.name}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.bio?.substring(0, 50)}...</div>
+                                    </div>
+                                    <button
+                                        className="btn-primary"
+                                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }}
+                                        onClick={() => {
+                                            navigate(`/profile/${u.id}`);
+                                            setShowFollowers(false);
+                                            setShowFollowing(false);
+                                        }}
+                                    >
+                                        View
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>Posts</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

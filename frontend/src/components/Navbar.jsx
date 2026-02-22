@@ -1,13 +1,32 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Home, User } from 'lucide-react';
+import { LogOut, Home, User, Bell, MessageSquare } from 'lucide-react';
 import api from '../services/api';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
     const [searchQuery, setSearchQuery] = React.useState('');
     const [searchResults, setSearchResults] = React.useState([]);
+    const [unreadCount, setUnreadCount] = React.useState(0);
+
+    React.useEffect(() => {
+        if (user) {
+            fetchUnreadCount();
+            const interval = setInterval(fetchUnreadCount, 30000);
+            return () => clearInterval(interval);
+        }
+    }, [user]);
+
+    const fetchUnreadCount = async () => {
+        try {
+            const { data } = await api.get('/notifications');
+            const unread = data.filter(n => !n.read).length;
+            setUnreadCount(unread);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const handleSearch = async (query) => {
         setSearchQuery(query);
@@ -121,11 +140,33 @@ const Navbar = () => {
                                     </div>
                                 )}
                             </div>
-                            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
-                                <Home size={20} /> <span style={{ display: 'none', '@media (minWidth: 768px)': { display: 'inline' } }}>Feed</span>
+                            <Link to="/feed" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
+                                <Home size={20} /> <span style={{ display: 'none', md: 'inline' }}>Feed</span>
+                            </Link>
+                            <Link to="/notifications" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', position: 'relative' }}>
+                                <Bell size={20} />
+                                {unreadCount > 0 && (
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: '-5px',
+                                        right: '-5px',
+                                        background: 'var(--error)',
+                                        color: 'white',
+                                        fontSize: '0.65rem',
+                                        padding: '2px 5px',
+                                        borderRadius: '10px',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {unreadCount}
+                                    </span>
+                                )}
+                                <span style={{ display: 'none', md: 'inline' }}>Notifications</span>
+                            </Link>
+                            <Link to="/messages" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
+                                <MessageSquare size={20} /> <span style={{ display: 'none', md: 'inline' }}>Messages</span>
                             </Link>
                             <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
-                                <User size={20} /> <span style={{ display: 'none', '@media (minWidth: 768px)': { display: 'inline' } }}>Profile</span>
+                                <User size={20} /> <span style={{ display: 'none', md: 'inline' }}>Profile</span>
                             </Link>
                             <button onClick={logout} style={{
                                 background: 'none',

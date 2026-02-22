@@ -42,6 +42,13 @@ router.get('/:id', async (req, res) => {
                 email: true,
                 bio: true,
                 avatar: true,
+                _count: {
+                    select: {
+                        followers: true,
+                        following: true,
+                        posts: true
+                    }
+                },
                 posts: {
                     include: {
                         author: { select: { id: true, name: true, avatar: true } },

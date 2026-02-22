@@ -63,6 +63,20 @@ router.post('/:id/like', protect, async (req, res) => {
             await prisma.like.create({
                 data: { userId, postId },
             });
+
+            // Trigger notification
+            const post = await prisma.post.findUnique({ where: { id: postId } });
+            if (post && post.authorId !== userId) {
+                await prisma.notification.create({
+                    data: {
+                        userId: post.authorId,
+                        type: "LIKE",
+                        senderId: userId,
+                        postId: postId
+                    }
+                });
+            }
+
             res.json({ liked: true });
         }
     } catch (error) {
@@ -85,8 +99,22 @@ router.post('/:id/comment', protect, async (req, res) => {
             },
             include: {
                 user: { select: { id: true, name: true, avatar: true } },
+                post: { select: { authorId: true } }
             },
         });
+
+        // Trigger notification
+        if (comment.post.authorId !== userId) {
+            await prisma.notification.create({
+                data: {
+                    userId: comment.post.authorId,
+                    type: "COMMENT",
+                    senderId: userId,
+                    postId: postId
+                }
+            });
+        }
+
         res.status(201).json(comment);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
