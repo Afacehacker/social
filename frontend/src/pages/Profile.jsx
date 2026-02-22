@@ -142,8 +142,7 @@ const Profile = () => {
     const getAvatarUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
+        return `${api.defaults.baseURL.replace('/api', '')}${path}`;
     };
 
     return (

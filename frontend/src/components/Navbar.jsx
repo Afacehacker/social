@@ -45,8 +45,7 @@ const Navbar = () => {
     const getAvatarUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
-        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
+        return `${api.defaults.baseURL.replace('/api', '')}${path}`;
     };
 
     return (
@@ -81,15 +80,13 @@ const Navbar = () => {
                                     placeholder="Search users..."
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
-                                    className="Navbar_search-bar"
                                     style={{
                                         width: '200px',
                                         height: '36px',
                                         padding: '0 1rem',
                                         marginBottom: 0,
                                         borderRadius: '18px',
-                                        fontSize: '0.875rem',
-                                        transition: 'all 0.3s ease'
+                                        fontSize: '0.875rem'
                                     }}
                                 />
                                 {searchResults.length > 0 && (
@@ -143,10 +140,10 @@ const Navbar = () => {
                                     </div>
                                 )}
                             </div>
-                            <Link to="/feed" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }} title="Feed">
-                                <Home size={20} /> <span className="nav-label">Feed</span>
+                            <Link to="/feed" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
+                                <Home size={20} /> <span style={{ display: 'none', md: 'inline' }}>Feed</span>
                             </Link>
-                            <Link to="/notifications" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', position: 'relative' }} title="Notifications">
+                            <Link to="/notifications" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', position: 'relative' }}>
                                 <Bell size={20} />
                                 {unreadCount > 0 && (
                                     <span style={{
@@ -163,13 +160,13 @@ const Navbar = () => {
                                         {unreadCount}
                                     </span>
                                 )}
-                                <span className="nav-label">Notifications</span>
+                                <span style={{ display: 'none', md: 'inline' }}>Notifications</span>
                             </Link>
-                            <Link to="/messages" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }} title="Messages">
-                                <MessageSquare size={20} /> <span className="nav-label">Messages</span>
+                            <Link to="/messages" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
+                                <MessageSquare size={20} /> <span style={{ display: 'none', md: 'inline' }}>Messages</span>
                             </Link>
-                            <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }} title="Profile">
-                                <User size={20} /> <span className="nav-label">Profile</span>
+                            <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
+                                <User size={20} /> <span style={{ display: 'none', md: 'inline' }}>Profile</span>
                             </Link>
                             <button onClick={logout} style={{
                                 background: 'none',
@@ -177,8 +174,8 @@ const Navbar = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.5rem'
-                            }} title="Logout">
-                                <LogOut size={20} /> <span className="nav-label">Logout</span>
+                            }}>
+                                <LogOut size={20} /> <span style={{ display: 'none', '@media (minWidth: 768px)': { display: 'inline' } }}>Logout</span>
                             </button>
                             <Link to="/profile" style={{
                                 width: '32px',
