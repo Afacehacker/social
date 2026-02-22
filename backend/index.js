@@ -19,7 +19,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Middleware
 app.use(cors({
-    origin: ['https://godisgood-lilac.vercel.app', 'http://localhost:5173'],
+    origin: 'https://godisgood-lilac.vercel.app',
     credentials: true
 }));
 app.use(express.json());
