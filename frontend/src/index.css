@@ -186,3 +186,57 @@ a {
   backdrop-filter: blur(16px) saturate(180%) !important;
   border-bottom: 1px solid var(--glass-border) !important;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .Navbar_search-bar {
+    width: 40px !important;
+    padding: 0 !important;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .Navbar_search-bar:focus {
+    width: 200px !important;
+    padding: 0 1rem !important;
+    text-align: left;
+  }
+
+  .glass-card {
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  nav .container {
+    gap: 0.5rem;
+  }
+
+  nav Link,
+  nav button {
+    gap: 0.25rem !important;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
