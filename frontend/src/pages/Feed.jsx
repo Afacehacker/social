@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import PostCard from '../components/PostCard';
 import { Send, Image as ImageIcon, Film, X } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { getImageUrl } from '../utils/images';
 
 const Feed = () => {
     const { user } = useAuth();
@@ -69,14 +70,22 @@ const Feed = () => {
     };
 
     return (
-        <div className="container">
+        <div className="container" style={{ maxWidth: '700px' }}>
             {user && (
                 <form onSubmit={handleSubmit} className="glass-card" style={{ marginBottom: '2rem' }}>
                     <textarea
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="What's on your mind?"
-                        style={{ minHeight: '100px', marginBottom: '1rem', resize: 'none' }}
+                        style={{
+                            minHeight: '120px',
+                            marginBottom: '1.25rem',
+                            resize: 'none',
+                            fontSize: '1.1rem',
+                            background: 'transparent',
+                            border: 'none',
+                            padding: '0.5rem'
+                        }}
                     />
 
                     {mediaPreview && (

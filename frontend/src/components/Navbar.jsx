@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Home, User, Bell, MessageSquare } from 'lucide-react';
 import api from '../services/api';
+import { getImageUrl } from '../utils/images';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -42,12 +43,7 @@ const Navbar = () => {
         }
     };
 
-    const getAvatarUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
-    };
+    // Local helper replaced by global utility
 
     return (
         <nav className="glass-nav" style={{
@@ -134,7 +130,7 @@ const Navbar = () => {
                                                     overflow: 'hidden'
                                                 }}>
                                                     {result.avatar ? (
-                                                        <img src={getAvatarUrl(result.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        <img src={getImageUrl(result.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                     ) : result.name[0]}
                                                 </div>
                                                 <span>{result.name}</span>
@@ -193,7 +189,7 @@ const Navbar = () => {
                                 overflow: 'hidden'
                             }}>
                                 {user.avatar ? (
-                                    <img src={getAvatarUrl(user.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={getImageUrl(user.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : user.name.charAt(0).toUpperCase()}
                             </Link>
                         </>

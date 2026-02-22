@@ -19,19 +19,18 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 body {
-  background-color: var(--bg);
+  background: var(--bg-dark);
   color: var(--text-main);
-  font-family: var(--font);
-  line-height: 1.5;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  line-height: 1.6;
   min-height: 100vh;
-  background-image:
-    radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, #0b0f1a 0%, #050810 100%);
+  /* Kept from original */
   background-attachment: fixed;
+  /* Kept from original */
 }
 
 .container {
@@ -41,13 +40,19 @@ body {
 }
 
 .glass-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  /* Added webkit prefix */
   border: 1px solid var(--glass-border);
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.glass-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
 
 button {
@@ -58,17 +63,21 @@ button {
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: linear-gradient(135deg, #6366f1, #a855f7);
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
   border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  filter: brightness(1.1);
 }
 
 .btn-secondary {
@@ -188,9 +197,30 @@ a {
 }
 
 /* Mobile Responsiveness */
+/* Chat System Responsiveness */
+.mobile-only {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
+  .chat-sidebar.mobile-hide {
+    display: none !important;
+  }
+
+  .chat-main.mobile-hide {
+    display: none !important;
+  }
+
+  .chat-sidebar {
+    width: 100% !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
   .container {
-    padding: 1rem;
+    padding: 1rem 0.5rem;
   }
 
   .nav-label {
@@ -205,14 +235,14 @@ a {
   }
 
   .Navbar_search-bar:focus {
-    width: 200px !important;
+    width: 160px !important;
     padding: 0 1rem !important;
     text-align: left;
   }
 
   .glass-card {
     padding: 1rem;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
   }
 
   h1 {
