@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Heart, MessageSquare, UserPlus, CheckCircle } from 'lucide-react';
-import { getImageUrl } from '../utils/images';
+import { Heart, MessageCircle, UserPlus, Bell, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -30,7 +29,7 @@ const Notifications = () => {
 
     const markAsRead = async (id) => {
         try {
-            await api.put(`/ notifications / ${id}/read`);
+            await api.put(`/notifications/${id}/read`);
             setNotifications(notifs => notifs.map(n => n.id === id ? { ...n, read: true } : n));
         } catch (err) {
             addToast('Failed to mark as read', 'error');
@@ -40,7 +39,7 @@ const Notifications = () => {
     const getIcon = (type) => {
         switch (type) {
             case 'LIKE': return <Heart size={20} className="text-pink-500" fill="currentColor" />;
-            case 'COMMENT': return <MessageSquare size={20} className="text-blue-500" fill="currentColor" />;
+            case 'COMMENT': return <MessageCircle size={20} className="text-blue-500" fill="currentColor" />;
             case 'FOLLOW': return <UserPlus size={20} className="text-green-500" />;
             default: return <Bell size={20} />;
         }
@@ -53,6 +52,12 @@ const Notifications = () => {
             case 'FOLLOW': return `started following you`;
             default: return `sent you a notification`;
         }
+    };
+
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        return `${api.defaults.baseURL.replace('/api', '')}${path}`;
     };
 
     if (loading) return <div className="container" style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
@@ -101,7 +106,7 @@ const Notifications = () => {
                                     flexShrink: 0
                                 }}>
                                     {notif.sender.avatar ? (
-                                        <img src={getImageUrl(notif.sender.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={getAvatarUrl(notif.sender.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : notif.sender.name.charAt(0).toUpperCase()}
                                 </div>
 

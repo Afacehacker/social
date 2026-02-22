@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { getImageUrl } from '../utils/images';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MessageSquare, Users, UserPlus, UserMinus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import api from '../services/api';
 import PostCard from '../components/PostCard';
-import { useToast } from '../context/ToastContext';
 
 const Profile = () => {
     const { id } = useParams();
@@ -44,7 +42,7 @@ const Profile = () => {
                 if (res.data.avatar) {
                     const avatarUrl = res.data.avatar.startsWith('http')
                         ? res.data.avatar
-                        : getImageUrl(res.data.avatar); // Use getImageUrl
+                        : `${api.defaults.baseURL.replace('/api', '')}${res.data.avatar}`;
                     setAvatarPreview(avatarUrl);
                 }
                 setLoading(false);
@@ -136,12 +134,17 @@ const Profile = () => {
         }
     };
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
+    if (loading) return <div className="container">Loading...</div>;
     if (error) return <div className="container error-msg">{error}</div>;
 
     const isOwnProfile = currentUser && currentUser.id === user.id;
 
-    // Removed getAvatarUrl as getImageUrl is now used directly
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
+    };
 
     return (
         <div className="container">
@@ -161,7 +164,7 @@ const Profile = () => {
                     }}>
                         {(avatarPreview || user.avatar) ? (
                             <img
-                                src={avatarPreview || getImageUrl(user.avatar)} // Use getImageUrl
+                                src={avatarPreview || getAvatarUrl(user.avatar)}
                                 alt={user.name}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
@@ -252,9 +255,7 @@ const Profile = () => {
                             {(showFollowers ? followers : followingList).map(u => (
                                 <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', overflow: 'hidden' }}>
-                                        {u.avatar ? (
-                                            <img src={getImageUrl(u.avatar)} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        ) : u.name.charAt(0).toUpperCase()}
+                                        {u.avatar ? <img src={getAvatarUrl(u.avatar)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.name[0]}
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 'bold' }}>{u.name}</div>

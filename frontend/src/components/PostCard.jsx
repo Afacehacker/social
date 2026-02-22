@@ -3,7 +3,6 @@ import { Heart, MessageCircle, Share2, Trash2, Repeat } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { getImageUrl } from '../utils/images';
 
 const PostCard = ({ post, onUpdate }) => {
     const { user } = useAuth();
@@ -52,6 +51,23 @@ const PostCard = ({ post, onUpdate }) => {
 
     const isLiked = post.likes.some(like => like.userId === user?.id);
 
+    const handleShare = async () => {
+        try {
+            await api.post(`/posts/${post.id}/share`);
+            addToast('Shared successfully!');
+            onUpdate();
+        } catch (err) {
+            addToast('Share failed', 'error');
+        }
+    };
+
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
+    };
+
     return (
         <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -67,7 +83,7 @@ const PostCard = ({ post, onUpdate }) => {
                     overflow: 'hidden'
                 }}>
                     {post.author.avatar ? (
-                        <img src={getImageUrl(post.author.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={getAvatarUrl(post.author.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : post.author.name.charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -88,9 +104,9 @@ const PostCard = ({ post, onUpdate }) => {
             {post.mediaUrl && (
                 <div style={{ marginBottom: '1.5rem', borderRadius: '0.75rem', overflow: 'hidden', background: 'rgba(0,0,0,0.2)' }}>
                     {post.mediaType === 'VIDEO' ? (
-                        <video src={getImageUrl(post.mediaUrl)} controls style={{ width: '100%', display: 'block' }} />
+                        <video src={getAvatarUrl(post.mediaUrl)} controls style={{ width: '100%', display: 'block' }} />
                     ) : (
-                        <img src={getImageUrl(post.mediaUrl)} alt="" style={{ width: '100%', display: 'block' }} />
+                        <img src={getAvatarUrl(post.mediaUrl)} alt="" style={{ width: '100%', display: 'block' }} />
                     )}
                 </div>
             )}
@@ -100,7 +116,7 @@ const PostCard = ({ post, onUpdate }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                         <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--primary)', overflow: 'hidden' }}>
                             {post.sharedPost.author.avatar ? (
-                                <img src={getImageUrl(post.sharedPost.author.avatar)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={getAvatarUrl(post.sharedPost.author.avatar)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : post.sharedPost.author.name[0]}
                         </div>
                         <span style={{ fontWeight: 'bold', fontSize: '0.875rem' }}>{post.sharedPost.author.name}</span>
@@ -109,9 +125,9 @@ const PostCard = ({ post, onUpdate }) => {
                     {post.sharedPost.mediaUrl && (
                         <div style={{ marginTop: '0.75rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
                             {post.sharedPost.mediaType === 'VIDEO' ? (
-                                <video src={getImageUrl(post.sharedPost.mediaUrl)} controls style={{ width: '100%', display: 'block' }} />
+                                <video src={getAvatarUrl(post.sharedPost.mediaUrl)} controls style={{ width: '100%', display: 'block' }} />
                             ) : (
-                                <img src={getImageUrl(post.sharedPost.mediaUrl)} alt="" style={{ width: '100%', display: 'block' }} />
+                                <img src={getAvatarUrl(post.sharedPost.mediaUrl)} alt="" style={{ width: '100%', display: 'block' }} />
                             )}
                         </div>
                     )}
@@ -166,7 +182,7 @@ const PostCard = ({ post, onUpdate }) => {
                                     overflow: 'hidden'
                                 }}>
                                     {comment.user.avatar ? (
-                                        <img src={getImageUrl(comment.user.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={getAvatarUrl(comment.user.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : comment.user.name.charAt(0).toUpperCase()}
                                 </div>
                                 <span style={{ fontWeight: 'bold', fontSize: '0.875rem' }}>{comment.user.name}</span>
